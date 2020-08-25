@@ -1,12 +1,12 @@
 from datetime import timedelta, datetime
 import asyncio
 import random
-import inspect
 
 import discord
 from discord.ext import commands, tasks
 
 from .utils.time import human_duration, friendly_duration
+from .utils.context import Context
 
 
 async def select_winners(message: discord.Message, winner_count: int):
@@ -229,42 +229,35 @@ class GiveawayCog(commands.Cog):
         
         return giveaway
 
-    async def prompt(self, ctx, question, *, converter=str, timeout=60):
-        def check(m):
-            return m.author == ctx.author and m.channel == ctx.channel
-        
-        await ctx.send(question)
-        while True:
-            try:
-                res = await self.bot.wait_for('message', timeout=timeout, check=check)
-            except TimeoutError:
-                await ctx.send("❌ Sorry! you took too long to respond. Try again later!")
-                return None
-            else:
-                try:
-                    if inspect.isclass(converter) and issubclass(converter, commands.Converter):
-                        return await converter().convert(ctx, res.content)
-                    return converter(res.content)
-                except commands.BadArgument as err:
-                    await ctx.send(err)
-
+    @commands.guild_only()
+    @commands.bot_has_permissions(read_message_history=True, embed_links=True, add_reactions=True)
     @commands.command()
-    async def gcreate(self, ctx: commands.Context):
+    async def gcreate(self, ctx: Context):
         "Interactively sets up a giveaway for your server"
-        channel = await self.prompt(ctx, "Ok lets setup a giveaway for your server!\nWhich channel do you want giveaway in", converter=commands.TextChannelConverter)
-        td = await self.prompt(ctx, f'Nice! The giveaway will be started in {channel.mention}.\nNow how long should the giveaway last', converter=convert_duration)
-        winners = await self.prompt(ctx, f'Great! The giveaway will last for {friendly_duration(td)} How many winners should be chosen', converter=winner_count)
-        title = await self.prompt(ctx, 'Alright! What are you giving away')
-
-        endsat = datetime.utcnow() + td
-        message = await self.create_giveaway(
-            channelID=channel.id,
-            endsat=endsat,
-            winners=winners,
-            authorID=ctx.author.id,
-            title=title
-        )
-        await message.add_reaction('🎉')
+        try:
+            channel = await ctx.prompt("Ok lets setup a giveaway for your server!\nWhich channel do you want giveaway in", converter=commands.TextChannelConverter)
+            td = await ctx.prompt(f'Nice! The giveaway will be started in {channel.mention}.\nNow how long should the giveaway last', converter=convert_duration)
+            winners = await ctx.prompt(f'Great! The giveaway will last for {friendly_duration(td, True)} How many winners should be chosen', converter=winner_count)
+            title = await ctx.prompt('Alright! What are you giving away')
+            confirm = await ctx.ask(
+                f'Okay, your giveaway for **{title}** in {channel.mention} will last for {friendly_duration(td, True)} and **{winners}** winners will be chosen!\n'
+                f'**Do you confirm?**'
+            )
+        except asyncio.TimeoutError:
+            await ctx.send("❌ Sorry! you took too long to respond. Try again later!")
+        else:
+            if not confirm:
+                return await ctx.send('Cancelled the giveaway!')
+            
+            endsat = datetime.utcnow() + td
+            message = await self.create_giveaway(
+                channelID=channel.id,
+                endsat=endsat,
+                winners=winners,
+                authorID=ctx.author.id,
+                title=title
+            )
+            await message.add_reaction('🎉')
 
     @commands.guild_only()
     @commands.bot_has_permissions(read_message_history=True, embed_links=True, add_reactions=True)

@@ -6,6 +6,7 @@ from discord.ext import commands
 from motor.motor_asyncio import AsyncIOMotorClient
 
 from config import TOKEN, MONGO_URI
+from cogs.utils.context import Context
 
 
 COGS = [
@@ -28,6 +29,9 @@ class GiveawaySnake(commands.Bot):
 
         self.version = 'v0.0.1'
         self.invite = ''
+    
+    async def get_context(self, message, *, cls=None):
+        return await super().get_context(message, cls=Context)
 
     async def on_connect(self):
         print(f"\n{self.user} is starting up...")
@@ -56,4 +60,4 @@ class GiveawaySnake(commands.Bot):
 
 
 logging.basicConfig(level=logging.INFO)
-ModerationBot().run(TOKEN)
+GiveawaySnake().run(TOKEN)
