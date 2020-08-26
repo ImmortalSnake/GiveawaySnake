@@ -10,22 +10,29 @@ from cogs.utils.context import Context
 
 
 COGS = [
-    'cogs.general',
     'cogs.admin',
-    'cogs.giveaway',
-    'cogs.errors'
+    'cogs.config',
+    'cogs.errors',
+    'cogs.general',
+    'cogs.giveaway'
 ]
 
 
-def prefix_resolver(bot, msg):
+async def prefix_resolver(bot, msg):
     prefixes = [f'<@{bot.user.id}> ', f'<@!{bot.user.id}> ']
-    prefixes.append('m!')
+    prefix = 'm!'
+    if msg.guild:
+        config = await bot.db.guilds.find_one({'guild': msg.guild.id}, {'prefix': 1})
+        if config:
+            prefix = config.get('prefix', 'm!')
+    
+    prefixes.append(prefix)
     return prefixes
 
 
 class GiveawaySnake(commands.Bot):
     def __init__(self):
-        super().__init__(command_prefix=prefix_resolver, reconnect=True, owner_id=410806297580011520)
+        super().__init__(command_prefix=prefix_resolver, case_insensitive=True, reconnect=True, owner_id=410806297580011520)
 
         self.version = 'v0.0.1'
         self.invite = ''
@@ -59,5 +66,6 @@ class GiveawaySnake(commands.Bot):
         print("==========================================\n")
 
 
-logging.basicConfig(level=logging.INFO)
-GiveawaySnake().run(TOKEN)
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    GiveawaySnake().run(TOKEN)

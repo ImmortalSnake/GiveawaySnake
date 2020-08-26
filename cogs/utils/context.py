@@ -5,10 +5,17 @@ from discord.ext import commands
 
 class Context(commands.Context):
     async def get_config(self):
-        if not ctx.guild:
-            return {}
+        if not self.guild:
+            return {'prefix': 'm!'} # default config
 
-        return await self.bot.db.guilds.find_one({"guild": ctx.guild.id})
+        return await self.bot.db.guilds.find_one({"guild": self.guild.id})
+
+    async def update_config(self, data):
+        return await self.bot.db.guilds.update_one(
+            {"guild": self.guild.id},
+            data,
+            upsert=True
+        )
 
     async def prompt(self, question, *, converter=str, timeout=60):
         def check(m):

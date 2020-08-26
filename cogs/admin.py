@@ -86,7 +86,7 @@ class AdminCog(commands.Cog, command_attrs=dict(hidden=True)):
         await ctx.send(
             f"**Result**:\n{utils.codeblock(result, 'py')}\n"
             f"**Type**:\n{utils.codeblock(type(result), 'py')}\n"
-            f"**Time**:\n`{round((end-start)/100, 5)} ms`"
+            f"**Time**:\n`{round((end-start)*1000, 5)} ms`"
         )
 
 
