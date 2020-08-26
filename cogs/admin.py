@@ -77,11 +77,17 @@ class AdminCog(commands.Cog, command_attrs=dict(hidden=True)):
             return await ctx.send(utils.codeblock(f'{e.__class__.__name__}: {e}', 'py'))
 
         try:
+            start = time.perf_counter()
             result = await env['func']()
+            end = time.perf_counter()
         except Exception as e:
             return await ctx.send(utils.codeblock(f'{e.__class__.__name__}: {e}', 'py'))
 
-        await ctx.send(f"**Result**:\n{utils.codeblock(result, 'py')}")
+        await ctx.send(
+            f"**Result**:\n{utils.codeblock(result, 'py')}\n"
+            f"**Type**:\n{utils.codeblock(type(result), 'py')}\n"
+            f"**Time**:\n`{round((end-start)/100, 5)} ms`"
+        )
 
 
 def setup(bot):

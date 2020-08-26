@@ -258,6 +258,7 @@ class GiveawayCog(commands.Cog):
                 title=title
             )
             await message.add_reaction('🎉')
+            return await ctx.send(f'Done! Your giveaway has started in {channel.mention}')
 
     @commands.guild_only()
     @commands.bot_has_permissions(read_message_history=True, embed_links=True, add_reactions=True)
@@ -321,14 +322,14 @@ class GiveawayCog(commands.Cog):
     @commands.guild_only()
     @commands.bot_has_permissions(read_message_history=True)
     @commands.command()
-    async def greroll(self, ctx: commands.Context, *, msg: discord.Message = None):
+    async def greroll(self, ctx: Context, *, msg: discord.Message = None):
         "Rerolls the given message id or else rerolls the last giveaway"
         if msg:
             check = next((g for g in self.running if g.messageID == msg.id), None)
             if check:
                 return await ctx.send("❌ This giveaway is running right now. Wait for it to end or use the `gend` command to stop it now!")
         else:
-            config = await self.bot.db.guilds.find_one({"guild": ctx.guild.id})
+            config = await ctx.get_config()
             if not config or "lastGiveaway" not in config:
                 return await ctx.send("❌ No giveaways were run in this guild!")
 
