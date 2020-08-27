@@ -3,19 +3,33 @@ import inspect
 from discord.ext import commands
 
 
-class Context(commands.Context):
-    async def get_config(self):
-        if not self.guild:
-            return {'prefix': 'm!'} # default config
+class PromptCancelled(Exception):
+    pass
 
-        return await self.bot.db.guilds.find_one({"guild": self.guild.id})
+
+class Context(commands.Context):
+    def get_config(self):
+        # Default Config
+        config = {
+            'prefix': 'm!',
+            'giveawayrole': None
+        }
+
+        if not self.guild:
+            return config
+        
+        config.update(self.bot.guild_config.get(self.guild.id, {}))
+        return config
 
     async def update_config(self, data):
-        return await self.bot.db.guilds.update_one(
+        await self.bot.db.guilds.update_one(
             {"guild": self.guild.id},
-            data,
+            {"$set": data},
             upsert=True
         )
+        config = self.bot.guild_config.get(self.guild.id, {})
+        config.update(data)
+        self.bot.guild_config[self.guild.id] = config
 
     async def prompt(self, question, *, converter=str, timeout=60):
         def check(m):
@@ -24,6 +38,8 @@ class Context(commands.Context):
         await self.send(question)
         while True:
             res = await self.bot.wait_for('message', timeout=timeout, check=check)
+            if res.content.lower() == 'cancel':
+                raise PromptCancelled()
             # Must handle timeout errors
             try:
                 if inspect.isclass(converter) and issubclass(converter, commands.Converter):

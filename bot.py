@@ -22,7 +22,7 @@ async def prefix_resolver(bot, msg):
     prefixes = [f'<@{bot.user.id}> ', f'<@!{bot.user.id}> ']
     prefix = 'm!'
     if msg.guild:
-        config = await bot.db.guilds.find_one({'guild': msg.guild.id}, {'prefix': 1})
+        config = bot.guild_config.get(msg.guild.id)
         if config:
             prefix = config.get('prefix', 'm!')
     
@@ -36,6 +36,7 @@ class GiveawaySnake(commands.Bot):
 
         self.version = 'v0.0.1'
         self.invite = ''
+        self.guild_config = {}
     
     async def get_context(self, message, *, cls=None):
         return await super().get_context(message, cls=Context)
@@ -45,6 +46,10 @@ class GiveawaySnake(commands.Bot):
 
         self.client = AsyncIOMotorClient(MONGO_URI)
         self.db = self.client.dpy
+
+        async for conf in self.db.guilds.find({}, {'id': 0}):
+            guildid = conf.pop('guild')
+            self.guild_config[guildid] = conf
 
         print("Successfully connected to mongodb server")
 

@@ -6,7 +6,7 @@ import discord
 from discord.ext import commands, tasks
 
 from .utils.time import human_duration, friendly_duration
-from .utils.context import Context
+from .utils.context import Context, PromptCancelled
 
 
 async def select_winners(message: discord.Message, winner_count: int):
@@ -237,14 +237,16 @@ class GiveawayCog(commands.Cog):
         try:
             channel = await ctx.prompt("Ok lets setup a giveaway for your server!\nWhich channel do you want giveaway in", converter=commands.TextChannelConverter)
             td = await ctx.prompt(f'Nice! The giveaway will be started in {channel.mention}.\nNow how long should the giveaway last', converter=convert_duration)
-            winners = await ctx.prompt(f'Great! The giveaway will last for {friendly_duration(td, True)} How many winners should be chosen', converter=winner_count)
+            winners = await ctx.prompt(f'Great! The giveaway will last for **{friendly_duration(td, True)}** How many winners should be chosen', converter=winner_count)
             title = await ctx.prompt('Alright! What are you giving away')
             confirm = await ctx.ask(
-                f'Okay, your giveaway for **{title}** in {channel.mention} will last for {friendly_duration(td, True)} and **{winners}** winners will be chosen!\n'
+                f'Okay, your giveaway for **{title}** in {channel.mention} will last for **{friendly_duration(td, True)}** and **{winners} winner(s)** will be chosen!\n'
                 f'**Do you confirm?**'
             )
         except asyncio.TimeoutError:
             await ctx.send("❌ Sorry! you took too long to respond. Try again later!")
+        except PromptCancelled:
+            await ctx.send('Cancelled the giveaway!')
         else:
             if not confirm:
                 return await ctx.send('Cancelled the giveaway!')
@@ -329,7 +331,7 @@ class GiveawayCog(commands.Cog):
             if check:
                 return await ctx.send("❌ This giveaway is running right now. Wait for it to end or use the `gend` command to stop it now!")
         else:
-            config = await ctx.get_config()
+            config = ctx.get_config()
             if not config or "lastGiveaway" not in config:
                 return await ctx.send("❌ No giveaways were run in this guild!")
 

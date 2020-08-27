@@ -48,10 +48,10 @@ class ConfigCog(commands.Cog):
         if conf:
             if value:
                 converted = await conf['convert'](ctx, value)
-                await ctx.update_config({"$set": {conf['name']: converted}})
-                return await ctx.send(f"Successfully set the **{conf['title']}** to `{converted}``")
+                await ctx.update_config({conf['name']: converted})
+                return await ctx.send(f"Successfully set the **{conf['title']}** to `{converted}`")
 
-            config = await ctx.get_config()
+            config = ctx.get_config()
             current = config.get(conf['name'], 'None')
             embed = discord.Embed(
                 title=conf['title'],
