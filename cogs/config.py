@@ -14,35 +14,21 @@ async def convert_giveawayrole(ctx, value):
     return role.id
 
 
-async def convert_reset(ctx, value):
-    value = value.strip().lower()
-    conf = next((c for c in CONFIGURATIONS if value == c['name']), None)
-    if not conf:
-        raise commands.BadArgument('Could not find that configuration.. Try again')
-    return None
-
-
 CONFIGURATIONS = [
     {
         "title": "Bot Prefix",
         "name": "prefix",
         "description": "Set a custom prefix for this bot",
-        "example": "`{0}config prefix !`",
+        "example": "`{0}config prefix !`\n`{0}config reset prefix`",
+        "default": "m!",
         "convert": convert_prefix
     },
     {
         "title": "Giveaway Role",
         "name": "giveawayrole",
         "description": "If any member has this role, they will be able to host giveaways in your server, otherwise it requires `ADMINISTRATOR` permissions",
-        "example": "`{0}config giveawayrole @giveaways`",
+        "example": "`{0}config giveawayrole @giveaways`\n`{0}config reset giveawayrole`",
         "convert": convert_giveawayrole
-    },
-    {
-        "title": "Reset",
-        "name": "reset",
-        "description": "Resets a configuration to its default",
-        "example": "`{0}config reset prefix`",
-        "convert": convert_reset
     }
 ]
 
@@ -59,18 +45,24 @@ class ConfigCog(commands.Cog):
         conf = None
         if key:
             key = key.strip().lower()
-            conf = next((c for c in CONFIGURATIONS if key == c['name']), None)
+            if key == 'reset':
+                # <prefix>config reset <value>
+                value = value.strip().lower()
+                conf = next((c for c in CONFIGURATIONS if c['name'] == value), None)
+                if not conf:
+                    raise commands.BadArgument('Could not find that configuration.. Try again')
+
+                await ctx.update_config({value: conf.get('default')})
+                return await ctx.send(f"Successfully reset the **{conf['title']}**")
+
+            else:
+                conf = next((c for c in CONFIGURATIONS if c['name'] == key), None)
         
         if conf:
             if value:
                 converted = await conf['convert'](ctx, value)
-                if converted:
-                    await ctx.update_config({conf['name']: converted})
-                    return await ctx.send(f"Successfully set the **{conf['title']}** to `{converted}`")
-                else: 
-                    key = value.strip().lower()
-                    await ctx.update_config({key: None})
-                    return await ctx.send(f"Successfully reset the **{key}**")
+                await ctx.update_config({conf['name']: converted})
+                return await ctx.send(f"Successfully set the **{conf['title']}** to `{converted}`")
 
             config = ctx.get_config()
             current = config.get(conf['name'], 'None')
