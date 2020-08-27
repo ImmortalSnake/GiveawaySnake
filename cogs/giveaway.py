@@ -95,7 +95,8 @@ class Giveaway(object):
             f'**Time Left:** **{friendly_duration(self.duration, long=True)}**',
             f'**Hosted By:** {self.author.mention}'
         ])
-        return embed.set_footer(text=f'Ends At: {self.endsat}')
+        embed.timestamp = self.endsat
+        return embed.set_footer(text=f'Ends At:')
     
     async def fetch_message(self):
         "Fetches the message and caches it with the reactions"
@@ -128,7 +129,7 @@ class Giveaway(object):
         else:
             str_winners = ', '.join(w.mention for w in winners)
             embed.description = f"**Winner(s): {str_winners}**"
-            await self.channel.send(f'🎉 Congratulations {str_winners}! You won **{self.title}**')
+            await self.channel.send(f'🎉 Congratulations {str_winners}! You won **{self.title}**\n{self.message.jump_url}')
         
         return await self.message.edit(content="🎉 **GIVEAWAY ENDED** 🎉", embed=embed)
 
@@ -242,10 +243,10 @@ class GiveawayCog(commands.Cog):
     async def gcreate(self, ctx: Context):
         "Interactively sets up a giveaway for your server"
         try:
-            channel = await ctx.prompt("Ok lets setup a giveaway for your server!\nWhich channel do you want giveaway in", converter=commands.TextChannelConverter)
-            td = await ctx.prompt(f'Nice! The giveaway will be started in {channel.mention}.\nNow how long should the giveaway last', converter=convert_duration)
-            winners = await ctx.prompt(f'Great! The giveaway will last for **{friendly_duration(td, True)}** How many winners should be chosen', converter=winner_count)
-            title = await ctx.prompt('Alright! What are you giving away')
+            channel = await ctx.prompt("Ok lets setup a giveaway for your server!\n**Which channel do you want giveaway in?**\n\nType `cancel` anytime to cancel the the giveaway", converter=commands.TextChannelConverter)
+            td = await ctx.prompt(f'Nice! The giveaway will be started in {channel.mention}.\n**Now how long should the giveaway last?**', converter=convert_duration)
+            winners = await ctx.prompt(f'Great! The giveaway will last for **{friendly_duration(td, True)}**\n**How many winners should be chosen?**', converter=winner_count)
+            title = await ctx.prompt('Alright! **What will you be giving away?**')
             confirm = await ctx.ask(
                 f'Okay, your giveaway for **{title}** in {channel.mention} will last for **{friendly_duration(td, True)}** and **{winners} winner(s)** will be chosen!\n'
                 f'**Do you confirm?**'
@@ -331,14 +332,14 @@ class GiveawayCog(commands.Cog):
     @commands.guild_only()
     @commands.bot_has_permissions(read_message_history=True)
     @commands.command()
-    async def greroll(self, ctx: Context, *, msg: discord.Message = None):
+    async def greroll(self, ctx: commands.Context, *, msg: discord.Message = None):
         "Rerolls the given message id or else rerolls the last giveaway"
         if msg:
             check = next((g for g in self.running if g.messageID == msg.id), None)
             if check:
                 return await ctx.send("❌ This giveaway is running right now. Wait for it to end or use the `gend` command to stop it now!")
         else:
-            config = ctx.get_config()
+            config = await self.bot.db.guilds.find_one({'guild': ctx.guild.id})
             if not config or "lastGiveaway" not in config:
                 return await ctx.send("❌ No giveaways were run in this guild!")
 
