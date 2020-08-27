@@ -19,10 +19,10 @@ class Errors(commands.Cog):
         elif type(err) == commands.BotMissingPermissions:
             missing = ', '.join([f'`{p}`' for p in err.missing_perms])
             await ctx.send(f"❌ Sorry, but I need {missing} permission(s) to use this command")
-
-        elif type(err) == commands.NSFWChannelRequired:
-            await ctx.send('❌ Sorry, but this command can be run in **NSFW channels** only')
         
+        elif type(err) == commands.CheckFailure:
+            await ctx.send("❌ Sorry, you cannot use this command")
+
         else:
             await ctx.send(err)
 

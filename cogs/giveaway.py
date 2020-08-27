@@ -16,7 +16,7 @@ async def select_winners(message: discord.Message, winner_count: int):
 
     NOTE: Make sure to fetch the message first in order to cache reactions
     """
-    reaction = next((r for r in message.reactions if r.emoji == "🎉"), None)
+    reaction = discord.utils.get(message.reactions, emoji="🎉")
     if not reaction: return
         
     users = await reaction.users().flatten() # users is now a list of User..
@@ -228,6 +228,13 @@ class GiveawayCog(commands.Cog):
                 raise GiveawayNotFound("❌ Could not find that giveaway! Try again!")
         
         return giveaway
+
+    async def cog_check(self, ctx):
+        if ctx.author.guild_permissions.administrator:
+            return True
+
+        roleid = ctx.get_config().get('giveawayrole')
+        return roleid and discord.utils.get(ctx.author.roles, id=roleid)
 
     @commands.guild_only()
     @commands.bot_has_permissions(read_message_history=True, embed_links=True, add_reactions=True)
