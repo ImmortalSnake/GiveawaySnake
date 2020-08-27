@@ -14,6 +14,14 @@ async def convert_giveawayrole(ctx, value):
     return role.id
 
 
+async def convert_reset(ctx, value):
+    value = value.strip().lower()
+    conf = next((c for c in CONFIGURATIONS if value == c['name']), None)
+    if not conf:
+        raise commands.BadArgument('Could not find that configuration.. Try again')
+    return None
+
+
 CONFIGURATIONS = [
     {
         "title": "Bot Prefix",
@@ -28,6 +36,13 @@ CONFIGURATIONS = [
         "description": "If any member has this role, they will be able to host giveaways in your server, otherwise it requires `ADMINISTRATOR` permissions",
         "example": "`{0}config giveawayrole @giveaways`",
         "convert": convert_giveawayrole
+    },
+    {
+        "title": "Reset",
+        "name": "reset",
+        "description": "Resets a configuration to its default",
+        "example": "`{0}config reset prefix`",
+        "convert": convert_reset
     }
 ]
 
@@ -38,6 +53,7 @@ class ConfigCog(commands.Cog):
     
     @commands.guild_only()
     @commands.has_guild_permissions(administrator=True)
+    @commands.bot_has_permissions(embed_links=True)
     @commands.command(aliases=['config'])
     async def conf(self, ctx: commands.Context, key=None, *, value=None):
         conf = None
@@ -48,8 +64,13 @@ class ConfigCog(commands.Cog):
         if conf:
             if value:
                 converted = await conf['convert'](ctx, value)
-                await ctx.update_config({conf['name']: converted})
-                return await ctx.send(f"Successfully set the **{conf['title']}** to `{converted}`")
+                if converted:
+                    await ctx.update_config({conf['name']: converted})
+                    return await ctx.send(f"Successfully set the **{conf['title']}** to `{converted}`")
+                else: 
+                    key = value.strip().lower()
+                    await ctx.update_config({key: None})
+                    return await ctx.send(f"Successfully reset the **{key}**")
 
             config = ctx.get_config()
             current = config.get(conf['name'], 'None')

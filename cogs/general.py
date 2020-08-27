@@ -28,11 +28,7 @@ class GeneralCog(commands.Cog):
     @commands.command()
     async def invite(self, ctx):
         """Add me to your discord server"""
-        embed = discord.Embed(
-            title="Invite",
-            description=f"To add **{self.bot}** to your guild, use the following link\n{self.bot.invite}"
-        )
-        await ctx.send(embed=embed)
+        await ctx.send(f"To add **{self.bot.user.name}** to your guild, use the following link\n{self.bot.invite}")
 
     @commands.command()
     @commands.bot_has_permissions(embed_links=True)
@@ -61,8 +57,8 @@ class GeneralCog(commands.Cog):
             f"• CPU Usage    :: {cpu_usage}%"
         ]), 'asciidoc')
 
-        embed.add_field(name="Invite", value="[Click Here]()")
-        embed.add_field(name="Support", value="[Click Here]()")
+        embed.add_field(name="Invite", value=f"[`Click Here`]({self.bot.invite})")
+        embed.add_field(name="Support", value=f"[`Click Here`]({self.bot.support})")
 
         await ctx.send(embed=embed)
 

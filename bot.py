@@ -35,7 +35,8 @@ class GiveawaySnake(commands.Bot):
         super().__init__(command_prefix=prefix_resolver, case_insensitive=True, reconnect=True, owner_id=410806297580011520)
 
         self.version = 'v0.0.1'
-        self.invite = ''
+        self.invite = 'https://discord.com/oauth2/authorize?client_id=543796400165748736&scope=bot&permissions=81984'
+        self.support = 'https://discord.gg/b8S3HAw'
         self.guild_config = {}
     
     async def get_context(self, message, *, cls=None):
