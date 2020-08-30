@@ -32,31 +32,20 @@ CONFIGURATIONS = [
     }
 ]
 
-class ConfigCog(commands.Cog):
-
+class ConfigCog(commands.Cog, name="⚙️ Config Commands"):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
     
     @commands.guild_only()
     @commands.has_guild_permissions(administrator=True)
     @commands.bot_has_permissions(embed_links=True)
-    @commands.command(aliases=['config'])
+    @commands.group(invoke_without_command=True, aliases=['config'])
     async def conf(self, ctx: commands.Context, key=None, *, value=None):
+        "Manage your server configuration"
         conf = None
         if key:
             key = key.strip().lower()
-            if key == 'reset':
-                # <prefix>config reset <value>
-                value = value.strip().lower()
-                conf = next((c for c in CONFIGURATIONS if c['name'] == value), None)
-                if not conf:
-                    raise commands.BadArgument('Could not find that configuration.. Try again')
-
-                await ctx.update_config({value: conf.get('default')})
-                return await ctx.send(f"Successfully reset the **{conf['title']}**")
-
-            else:
-                conf = next((c for c in CONFIGURATIONS if c['name'] == key), None)
+            conf = next((c for c in CONFIGURATIONS if c['name'] == key), None)
         
         if conf:
             if value:
@@ -82,6 +71,16 @@ class ConfigCog(commands.Cog):
                 embed.add_field(name=conf['title'], value=f"`{ctx.prefix}config {conf['name']}`")
             
             return await ctx.send(embed=embed)
+
+    @conf.command()
+    async def reset(self, ctx, *, value=''):
+        value = value.strip().lower()
+        conf = next((c for c in CONFIGURATIONS if c['name'] == value), None)
+        if not conf:
+            raise commands.BadArgument('Could not find that configuration.. Try again')
+
+        await ctx.update_config({value: conf.get('default')})
+        return await ctx.send(f"Successfully reset the **{conf['title']}**")
 
 
 def setup(bot):

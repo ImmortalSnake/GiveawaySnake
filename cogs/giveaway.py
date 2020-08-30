@@ -138,7 +138,7 @@ class GiveawayNotFound(BaseException):
     pass
 
 
-class GiveawayCog(commands.Cog):
+class GiveawayCog(commands.Cog, name="🎉 Giveaway Commands"):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.running = []

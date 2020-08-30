@@ -32,7 +32,13 @@ async def prefix_resolver(bot, msg):
 
 class GiveawaySnake(commands.Bot):
     def __init__(self):
-        super().__init__(command_prefix=prefix_resolver, case_insensitive=True, reconnect=True, owner_id=410806297580011520)
+        super().__init__(
+            command_prefix=prefix_resolver,
+            help_command=None,
+            case_insensitive=True,
+            reconnect=True,
+            owner_id=410806297580011520
+        )
 
         self.version = 'v0.0.1'
         self.invite = 'https://discord.com/oauth2/authorize?client_id=543796400165748736&scope=bot&permissions=81984'

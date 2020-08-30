@@ -6,7 +6,7 @@ A simple bot made with [discord.py](https://discordpy.readthedocs.io/en/latest/)
 
 ## Features
 
-- 5 Giveaway Commands: `create`, `start`, `end`, `delete`, `reroll` 
+- 6 Giveaway Commands: `create`, `start`, `end`, `delete`, `list`, `reroll` 
 - Automatic restarting of giveaways after restart
 - Dynamic refresh intervals
 - Customisable Prefix

@@ -9,7 +9,7 @@ from discord.ext import commands
 from .utils import utils, time
 
 
-class GeneralCog(commands.Cog):
+class GeneralCog(commands.Cog, name="💬 General Commands"):
     def __init__(self, bot):
         self.bot = bot
         self.process = psutil.Process()
@@ -61,6 +61,43 @@ class GeneralCog(commands.Cog):
         embed.add_field(name="Support", value=f"[`Click Here`]({self.bot.support})")
 
         await ctx.send(embed=embed)
+
+    @commands.bot_has_permissions(embed_links=True)
+    @commands.command()
+    async def help(self, ctx: commands.Context, *, cmd=''):
+        "Displays all commands available, and shows information for each command"
+        cmd = cmd.lower().strip()
+        command = next((c for c in self.bot.commands if cmd == c.name or cmd in c.aliases), None)
+        if not command:
+            fields = {}
+            embed = discord.Embed(
+                title="Help",
+                description=f"Displaying all commands available, use `{ctx.prefix}help <command>` to view more info in each command"
+            )
+            for command in self.bot.commands:
+                if not command.enabled or command.hidden:
+                    continue
+
+                cogname = command.cog.qualified_name
+                if cogname in fields:
+                    fields[cogname] += f'`{command}` '
+                else:
+                    fields[cogname] = f'`{command}` '
+            
+            for cog, commands in fields.items():
+                embed.add_field(name=cog, value=commands, inline=False)
+            await ctx.send(embed=embed)
+        else:
+            embed = discord.Embed(
+                title=f"Command Help - {command.name.title()}",
+                description=f'**{command.help}**'
+            )
+            embed.add_field(name='📜 | Usage', value=f'`{ctx.prefix}{command.name} {command.signature}`')
+            if command.aliases: 
+                embed.add_field(name="📝 | Aliases", value=' '.join(f'`{a}`' for a in command.aliases), inline=False)
+            
+            await ctx.send(embed=embed)
+
 
 
 def setup(bot):
