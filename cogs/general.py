@@ -24,7 +24,7 @@ class GeneralCog(commands.Cog, name="💬 General Commands"):
         duration = round((end - start) * 1000, 2)
         heartbeat = round(self.bot.latency * 1000, 2)
         await message.edit(content=f'**Pong!** Roundtrip: `{duration}ms`, Heartbeat: `{heartbeat}ms`')
-    
+
     @commands.command()
     async def invite(self, ctx):
         """Add me to your discord server"""
@@ -83,9 +83,9 @@ class GeneralCog(commands.Cog, name="💬 General Commands"):
                     fields[cogname] += f'`{command}` '
                 else:
                     fields[cogname] = f'`{command}` '
-            
-            for cog, commands in fields.items():
-                embed.add_field(name=cog, value=commands, inline=False)
+
+            for cog, cmds in fields.items():
+                embed.add_field(name=cog, value=cmds, inline=False)
             await ctx.send(embed=embed)
         else:
             embed = discord.Embed(
@@ -95,7 +95,7 @@ class GeneralCog(commands.Cog, name="💬 General Commands"):
             embed.add_field(name='📜 | Usage', value=f'`{ctx.prefix}{command.name} {command.signature}`')
             if command.aliases: 
                 embed.add_field(name="📝 | Aliases", value=' '.join(f'`{a}`' for a in command.aliases), inline=False)
-            
+
             await ctx.send(embed=embed)
 
 

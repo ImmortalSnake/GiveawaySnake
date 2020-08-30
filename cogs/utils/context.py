@@ -10,14 +10,10 @@ class PromptCancelled(Exception):
 class Context(commands.Context):
     def get_config(self):
         # Default Config
-        config = {
-            'prefix': 'm!',
-            'giveawayrole': None
-        }
-
+        config = {'prefix': 'm!', 'giveawayrole': None}
         if not self.guild:
             return config
-        
+
         config.update(self.bot.guild_config.get(self.guild.id, {}))
         return config
 
@@ -32,9 +28,9 @@ class Context(commands.Context):
         self.bot.guild_config[self.guild.id] = config
 
     async def prompt(self, question, *, converter=str, timeout=60):
-        def check(m):
-            return m.author == self.author and m.channel == self.channel
-        
+        def check(msg):
+            return msg.author == self.author and msg.channel == self.channel
+
         await self.send(question)
         while True:
             res = await self.bot.wait_for('message', timeout=timeout, check=check)
@@ -55,8 +51,7 @@ class Context(commands.Context):
 
         def check(reaction, user):
             return user == self.author and reaction.message.id == msg.id and str(reaction.emoji) in ['✅', '❌']
-        
 
-        reaction, user = await self.bot.wait_for('reaction_add', timeout=timeout, check=check)
+        reaction, _ = await self.bot.wait_for('reaction_add', timeout=timeout, check=check)
         # Must handle timeout errors
         return str(reaction.emoji) == '✅'

@@ -17,19 +17,20 @@ async def select_winners(message: discord.Message, winner_count: int):
     NOTE: Make sure to fetch the message first in order to cache reactions
     """
     reaction = discord.utils.get(message.reactions, emoji="🎉")
-    if not reaction: return
-        
-    users = await reaction.users().flatten() # users is now a list of User..
-    filtered = [u for u in users if type(u) == discord.Member and not u.bot]
+    if not reaction: 
+        return
 
-    if len(filtered) < winner_count: return
-    return random.sample(filtered, winner_count)
+    users = await reaction.users().flatten() # users is now a list of User..
+    filtered = [u for u in users if isinstance(u, discord.Member) and not u.bot]
+
+    if len(filtered) >= winner_count:
+        return random.sample(filtered, winner_count)
 
 
 def winner_count(arg: str) -> int:
     "Makes sure the winner count is > 1"
     num = int(arg)
-    if num < 1: 
+    if num < 1:
         raise commands.BadArgument("❌ Winner count cannot be lower than 1")
 
     return num
@@ -40,13 +41,13 @@ def convert_duration(arg: str) -> timedelta:
     seconds = human_duration(arg)
     if seconds < 15:
         raise commands.BadArgument("❌ Duration cannot be lesser than 15 seconds")
-    elif seconds > 14 * 86400:
+    if seconds > 14 * 86400:
         raise commands.BadArgument("❌ Duration cannot be longer than 14 days")
 
     return timedelta(seconds=seconds)
 
 
-class Giveaway(object):
+class Giveaway:
     def __init__(self, bot: commands.Bot, **data):
         self.bot = bot
         self.authorID = data.get('authorID')
@@ -59,6 +60,7 @@ class Giveaway(object):
         self.channel = self.bot.get_channel(self.channelID)
         self.author = self.bot.get_user(self.authorID)
         self.finished = False
+        self.message = None
 
         self.next_refresh = self.calculate_next_refresh()
 
@@ -96,8 +98,8 @@ class Giveaway(object):
             f'**Hosted By:** {self.author.mention}'
         ])
         embed.timestamp = self.endsat
-        return embed.set_footer(text=f'Ends At:')
-    
+        return embed.set_footer(text='Ends At:')
+
     async def fetch_message(self):
         "Fetches the message and caches it with the reactions"
         self.message = await self.channel.fetch_message(self.messageID)
@@ -130,7 +132,7 @@ class Giveaway(object):
             str_winners = ', '.join(w.mention for w in winners)
             embed.description = f"**Winner(s): {str_winners}**"
             await self.channel.send(f'🎉 Congratulations {str_winners}! You won **{self.title}**\n{self.message.jump_url}')
-        
+
         return await self.message.edit(content="🎉 **GIVEAWAY ENDED** 🎉", embed=embed)
 
 
@@ -159,7 +161,7 @@ class GiveawayCog(commands.Cog, name="🎉 Giveaway Commands"):
                 except discord.errors.NotFound:
                     # If the channel / message is not found then delete the giveaway
                     await self.delete_giveaway(giveaway)
-        
+
         self.running = [g for g in self.running if not g.finished]
 
     @giveaway_loop.before_loop
@@ -199,7 +201,8 @@ class GiveawayCog(commands.Cog, name="🎉 Giveaway Commands"):
 
     async def refresh_giveaway(self, giveaway: Giveaway):
         "Refreshes a giveaway, finishes it if the time is up"
-        if giveaway.finished: return
+        if giveaway.finished:
+            return
         if giveaway.endsat < datetime.utcnow(): 
             return await self.finish_giveaway(giveaway)
 
@@ -227,7 +230,7 @@ class GiveawayCog(commands.Cog, name="🎉 Giveaway Commands"):
             giveaway = next((g for g in lst if g.messageID == message.id), None)
             if not giveaway:
                 raise GiveawayNotFound("❌ Could not find that giveaway! Try again!")
-        
+
         return giveaway
 
     async def cog_check(self, ctx):
@@ -258,7 +261,7 @@ class GiveawayCog(commands.Cog, name="🎉 Giveaway Commands"):
         else:
             if not confirm:
                 return await ctx.send('Cancelled the giveaway!')
-            
+
             endsat = datetime.utcnow() + td
             message = await self.create_giveaway(
                 channelID=channel.id,
@@ -323,7 +326,7 @@ class GiveawayCog(commands.Cog, name="🎉 Giveaway Commands"):
         lst = [g for g in self.running if g.guild.id == ctx.guild.id]
         if not lst:
             return await ctx.send("❌ There are no running giveaways in this server!")
-        
+
         await ctx.send("\n".join([
             f"**{i+1}]** `{g.messageID}` → {g.channel.mention} | `{g.winners}` **Winner(s)** | **Ends At:** {friendly_duration(g.duration)} | **Title:** `{g.title}`"
             for i, g in enumerate(lst)

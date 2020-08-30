@@ -22,7 +22,7 @@ def friendly_duration(td: timedelta, long=False) -> str:
 
 
 regex = re.compile(r'(?:(\d+) *(s|m|h|d))+?')
-formats = { 's': 1, 'm': 60, 'h': 3600, 'd': 86400 }
+formats = {'s': 1, 'm': 60, 'h': 3600, 'd': 86400}
 
 def human_duration(string: str) -> int:
     """
@@ -48,5 +48,5 @@ def human_duration(string: str) -> int:
                 seconds += int(key)
         except ValueError:
             raise commands.BadArgument("Invalid duration string provided (number)")
-        
+
     return seconds

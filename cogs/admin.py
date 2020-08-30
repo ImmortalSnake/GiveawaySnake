@@ -6,18 +6,19 @@ from discord.ext import commands
 from .utils import utils
 
 
+def cleanup_code(self, content):
+    """Automatically removes code blocks from the code."""
+    if content.startswith("```") and content.endswith("```"):
+        return "\n".join(content.split("\n")[1:-1])
+    return content.strip("` \n")
+
+
 class AdminCog(commands.Cog, name="🔒 Admin Commands", command_attrs=dict(hidden=True)):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
     async def cog_check(self, ctx: commands.Context):
         return await self.bot.is_owner(ctx.author)
-
-    def cleanup_code(self, content):
-        """Automatically removes code blocks from the code."""
-        if content.startswith("```") and content.endswith("```"):
-            return "\n".join(content.split("\n")[1:-1])
-        return content.strip("` \n")
 
     @commands.command()
     async def load(self, ctx: commands.Context, *, module: str):
@@ -58,7 +59,7 @@ class AdminCog(commands.Cog, name="🔒 Admin Commands", command_attrs=dict(hidd
     @commands.command(name="eval")
     async def _eval(self, ctx: commands.Context, *, inp: str):
         """Evaluates python code"""
-        code = '\n'.join(f'    {l}' for l in self.cleanup_code(inp).splitlines())
+        code = '\n'.join(f'    {l}' for l in cleanup_code(inp).splitlines())
         env = {
             'ctx': ctx,
             'bot': self.bot,
@@ -72,16 +73,16 @@ class AdminCog(commands.Cog, name="🔒 Admin Commands", command_attrs=dict(hidd
 
         try:
             exec(body, env)
-        except Exception as e:
+        except Exception as err:
             print(traceback.format_exc())
-            return await ctx.send(utils.codeblock(f'{e.__class__.__name__}: {e}', 'py'))
+            return await ctx.send(utils.codeblock(f'{err.__class__.__name__}: {err}', 'py'))
 
         try:
             start = time.perf_counter()
             result = await env['func']()
             end = time.perf_counter()
-        except Exception as e:
-            return await ctx.send(utils.codeblock(f'{e.__class__.__name__}: {e}', 'py'))
+        except Exception as err:
+            return await ctx.send(utils.codeblock(f'{err.__class__.__name__}: {err}', 'py'))
 
         await ctx.send(
             f"**Result**:\n{utils.codeblock(result, 'py')}\n"

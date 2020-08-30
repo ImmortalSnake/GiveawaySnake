@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 
 
-async def convert_prefix(ctx, value):
+async def convert_prefix(_, value):
     if len(value) > 5:
         raise commands.BadArgument('Sorry! the prefix cannot be longer than 5 characters')
 
@@ -35,7 +35,7 @@ CONFIGURATIONS = [
 class ConfigCog(commands.Cog, name="⚙️ Config Commands"):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-    
+
     @commands.guild_only()
     @commands.has_guild_permissions(administrator=True)
     @commands.bot_has_permissions(embed_links=True)
@@ -46,7 +46,7 @@ class ConfigCog(commands.Cog, name="⚙️ Config Commands"):
         if key:
             key = key.strip().lower()
             conf = next((c for c in CONFIGURATIONS if c['name'] == key), None)
-        
+
         if conf:
             if value:
                 converted = await conf['convert'](ctx, value)
@@ -62,15 +62,15 @@ class ConfigCog(commands.Cog, name="⚙️ Config Commands"):
             embed.add_field(name="Current Setting", value=f"`{current}`", inline=False)
             embed.add_field(name="Example", value=conf['example'].format(ctx.prefix), inline=False)
             return await ctx.send(embed=embed)
-        else:
-            embed = discord.Embed(
-                title="Configuration",
-                description=f"Use `{ctx.prefix}config <key>` to see more details about the configuration"
-            )
-            for conf in CONFIGURATIONS:
-                embed.add_field(name=conf['title'], value=f"`{ctx.prefix}config {conf['name']}`")
-            
-            return await ctx.send(embed=embed)
+        
+        embed = discord.Embed(
+            title="Configuration",
+            description=f"Use `{ctx.prefix}config <key>` to see more details about the configuration"
+        )
+        for conf in CONFIGURATIONS:
+            embed.add_field(name=conf['title'], value=f"`{ctx.prefix}config {conf['name']}`")
+
+        return await ctx.send(embed=embed)
 
     @conf.command()
     async def reset(self, ctx, *, value=''):
