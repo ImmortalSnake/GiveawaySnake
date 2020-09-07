@@ -93,7 +93,7 @@ class GeneralCog(commands.Cog, name="💬 General Commands"):
                 description=f'**{command.help}**'
             )
             embed.add_field(name='📜 | Usage', value=f'`{ctx.prefix}{command.name} {command.signature}`')
-            if command.aliases: 
+            if command.aliases:
                 embed.add_field(name="📝 | Aliases", value=' '.join(f'`{a}`' for a in command.aliases), inline=False)
 
             await ctx.send(embed=embed)

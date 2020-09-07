@@ -62,7 +62,7 @@ class ConfigCog(commands.Cog, name="⚙️ Config Commands"):
             embed.add_field(name="Current Setting", value=f"`{current}`", inline=False)
             embed.add_field(name="Example", value=conf['example'].format(ctx.prefix), inline=False)
             return await ctx.send(embed=embed)
-        
+
         embed = discord.Embed(
             title="Configuration",
             description=f"Use `{ctx.prefix}config <key>` to see more details about the configuration"

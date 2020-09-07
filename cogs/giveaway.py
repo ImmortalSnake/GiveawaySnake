@@ -17,7 +17,7 @@ async def select_winners(message: discord.Message, winner_count: int):
     NOTE: Make sure to fetch the message first in order to cache reactions
     """
     reaction = discord.utils.get(message.reactions, emoji="🎉")
-    if not reaction: 
+    if not reaction:
         return
 
     users = await reaction.users().flatten() # users is now a list of User..
@@ -27,7 +27,7 @@ async def select_winners(message: discord.Message, winner_count: int):
         return random.sample(filtered, winner_count)
 
 
-def winner_count(arg: str) -> int:
+def winnercount(arg: str) -> int:
     "Makes sure the winner count is > 1"
     num = int(arg)
     if num < 1:
@@ -203,7 +203,7 @@ class GiveawayCog(commands.Cog, name="🎉 Giveaway Commands"):
         "Refreshes a giveaway, finishes it if the time is up"
         if giveaway.finished:
             return
-        if giveaway.endsat < datetime.utcnow(): 
+        if giveaway.endsat < datetime.utcnow():
             return await self.finish_giveaway(giveaway)
 
         return await giveaway.refresh()
@@ -248,7 +248,7 @@ class GiveawayCog(commands.Cog, name="🎉 Giveaway Commands"):
         try:
             channel = await ctx.prompt("Ok lets setup a giveaway for your server!\n**Which channel do you want giveaway in?**\n\nType `cancel` anytime to cancel the the giveaway", converter=commands.TextChannelConverter)
             td = await ctx.prompt(f'Nice! The giveaway will be started in {channel.mention}.\n**Now how long should the giveaway last?**', converter=convert_duration)
-            winners = await ctx.prompt(f'Great! The giveaway will last for **{friendly_duration(td, True)}**\n**How many winners should be chosen?**', converter=winner_count)
+            winners = await ctx.prompt(f'Great! The giveaway will last for **{friendly_duration(td, True)}**\n**How many winners should be chosen?**', converter=winnercount)
             title = await ctx.prompt('Alright! **What will you be giving away?**')
             confirm = await ctx.ask(
                 f'Okay, your giveaway for **{title}** in {channel.mention} will last for **{friendly_duration(td, True)}** and **{winners} winner(s)** will be chosen!\n'
@@ -276,7 +276,7 @@ class GiveawayCog(commands.Cog, name="🎉 Giveaway Commands"):
     @commands.guild_only()
     @commands.bot_has_permissions(read_message_history=True, embed_links=True, add_reactions=True)
     @commands.command()
-    async def gstart(self, ctx: commands.Context, td: convert_duration, winners: winner_count, *, title: str):
+    async def gstart(self, ctx: commands.Context, td: convert_duration, winners: winnercount, *, title: str):
         "Quickly starts a giveaway in the current channel"
         endsat = datetime.utcnow() + td
         message = await self.create_giveaway(

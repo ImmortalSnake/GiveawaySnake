@@ -25,7 +25,7 @@ async def prefix_resolver(bot, msg):
         config = bot.guild_config.get(msg.guild.id)
         if config:
             prefix = config.get('prefix', 'm!')
-    
+
     prefixes.append(prefix)
     return prefixes
 
@@ -44,7 +44,7 @@ class GiveawaySnake(commands.Bot):
         self.invite = 'https://discord.com/oauth2/authorize?client_id=543796400165748736&scope=bot&permissions=81984'
         self.support = 'https://discord.gg/b8S3HAw'
         self.guild_config = {}
-    
+
     async def get_context(self, message, *, cls=None):
         return await super().get_context(message, cls=Context)
 
@@ -61,7 +61,7 @@ class GiveawaySnake(commands.Bot):
         print("Successfully connected to mongodb server")
 
     async def on_ready(self):
-        await self.change_presence(activity=discord.Activity(type=1, name=f"development"))
+        await self.change_presence(activity=discord.Activity(type=1, name="development"))
         if not hasattr(self, 'uptime'):
             self.uptime = datetime.utcnow()
 
